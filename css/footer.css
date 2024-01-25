@@ -29,6 +29,26 @@ footer {
   transform: scale(0.8);
 }
 
+@keyframes icons-둥둥 {
+  0% {
+    transform: translateY(0px);
+  }
+  25% {
+    transform: translateY(-6px);
+  }
+  75% {
+    transform: translateY(2px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
+}
+
 .footer-icons__img {
   width: 30px;
+}
+
+.footer-icons:hover .footer-icons__img {
+  animation: 1s icons-둥둥;
 }
