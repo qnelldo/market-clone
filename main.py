@@ -44,9 +44,36 @@ async def get_img(item_id):
     image_bytes = cur.execute(f"""
                               SELECT image FROM items WHERE id ={item_id}
                               """).fetchone()[0]
-    return Response(content=bytes.fromhex(image_bytes))
+    return Response(content=bytes.fromhex(image_bytes), media_type='image/*')
     
+@app.post('/signup')
+def signup(id:Annotated[str,Form()], 
+           password:Annotated[str, Form()],
+           name:Annotated[str, Form()],
+           email:Annotated[str, Form()]):
     
+      # 중복된 사용자 ID 확인
+    cur.execute("SELECT id FROM users WHERE id = ?;", (id))
+    existing_user_id = cur.fetchone()
+
+    # 중복된 이메일 확인
+    cur.execute("SELECT id FROM users WHERE email = ?;", (email))
+    existing_email = cur.fetchone()
+
+    # 중복 여부에 따라 처리
+    if existing_user_id is not None:
+        return '동일한 ID를 가진 사용자가 이미 존재합니다'
+    elif existing_email is not None:
+        return '동일한 이메일을 가진 사용자가 이미 존재합니다'
+    else:
+        cur.execute(f"""
+                INSERT INTO users(id, name, email, password)
+                VALUES ('{id}', '{name}', '{email}', '{password}')
+                """)
+    
+    con.commit()
+    
+    return '200'
 
 
 app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
