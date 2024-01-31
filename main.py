@@ -6,6 +6,9 @@ from fastapi_login import LoginManager
 from fastapi_login.exceptions import InvalidCredentialsException
 from typing import Annotated
 import sqlite3
+import hashlib
+
+
 
 con = sqlite3.connect('db.db', check_same_thread=False)
 cur = con.cursor()
@@ -15,25 +18,41 @@ app = FastAPI()
 SECRET = "super-coding"
 manager = LoginManager(SECRET, '/login.html')
 
-@manager.user_loader()
+# @manager.user_loader()
+# def query_user(id):
+#     con.row_factory = sqlite3.Row
+#     cur = con.cursor()
+#     user = cur.execute(f""" 
+#                    SELECT * FROM users WHERE id=?
+#                    """, (id,)).fetchone()
+#     return user
+
+@manager.user_loader()  
 def query_user(data):
     WHERE_STATEMENTS = f'''id="{data}"'''
     if type(data) == dict:
-        WHERE_STATEMENTS = f'''id="{data['id']}"'''
-    con.row_factory = sqlite3.Row #컬럼명도 가져오기
-    cur = con.cursor()
-    user = cur.execute(f""" 
-                       SELECT * FROM users WHERE id='{WHERE_STATEMENTS}'
+          WHERE_STATEMENTS = f'''id="{data['id']}"'''
+    con.row_factory = sqlite3.Row
+    cur = con.cursor()  
+    user = cur.execute(f"""
+                       SELECT * FROM users WHERE {WHERE_STATEMENTS}
                        """).fetchone()
     return user
+
+
+
+
 
 @app.post('/login')
 def login(id:Annotated[str,Form()], 
           password:Annotated[str, Form()]):
+    
+    hash_password = hashlib.sha256(password.encode()).hexdigest()
+    
     user = query_user(id)
     if not user:
         raise InvalidCredentialsException
-    elif password != user['password']:
+    elif hash_password != user['password']:
         raise InvalidCredentialsException
     access_token = manager.create_access_token(data={
         'sub' : {
@@ -51,9 +70,11 @@ def signup(id:Annotated[str,Form()],
            name:Annotated[str, Form()],
            email:Annotated[str, Form()]):
     
+    hash_password = hashlib.sha256(password.encode()).hexdigest()
+    
     cur.execute(f"""
                 INSERT INTO users(id, name, email, password)
-                VALUES ('{id}', '{name}', '{email}', '{password}')
+                VALUES ('{id}', '{name}', '{email}', '{hash_password}')
                 """)
     
     con.commit()
@@ -66,7 +87,9 @@ async def create_item(image:UploadFile,
                 price:Annotated[int,Form()], 
                 description:Annotated[str,Form()], 
                 place:Annotated[str,Form()],
-                insertAt:Annotated[int, Form()]):
+                insertAt:Annotated[int, Form()],
+                user=Depends(manager)
+                ):
     
     image_bytes = await image.read()
     
