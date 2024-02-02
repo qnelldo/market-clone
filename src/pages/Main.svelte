@@ -1,7 +1,8 @@
   <script>
   import { onMount } from "svelte";
-  import Footer from "../components/Footer.svelte";
+  import Nav from "../components/Nav.svelte";
   import { getDatabase, ref, onValue } from "firebase/database";
+  
 
 
   $:items=[];
@@ -80,7 +81,7 @@ const calcTime = (timestamp) => {
     <a class="write-btn" href="#/write">+ 글쓰기</a>
   </main>
 
-  <Footer location="home"/>
+  <Nav location="home"/>
 
   <div class="media-info-msg">화면을 줄여주세요</div>
 

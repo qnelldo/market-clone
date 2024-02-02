@@ -1,7 +1,7 @@
 <script>
 import { getDatabase, push, ref } from "firebase/database";
 import { getStorage, ref as refImage, uploadBytes, getDownloadURL } from "firebase/storage"; //이름이 겹치면 바꿔서 쓰자
-import Footer from "../components/Footer.svelte";
+import Nav from "../components/Nav.svelte";
 
 let title;  
 let price;
@@ -69,7 +69,7 @@ const handleSubmit = async () => {
     </div>
   </form>
 
-  <Footer location="write"/>
+  <Nav location="write"/>
 
   <style>
     .write-button{
